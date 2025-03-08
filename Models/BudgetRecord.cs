@@ -1,15 +1,26 @@
-/*
-We will Define our budget class here
-Its gonna have category, cost, optional date???
-Define how our AI analytics agent will process this
-*/
-
-namespace BudgetBackend.Models;
-
-public class BudgetRecord
+namespace BudgetBackend.Models
 {
-    public int Id { get; set; }
-    public string Category { get; set; } = "";
-    public decimal Cost { get; set; }
-    public DateTime Date { get; set; } = DateTime.UtcNow;
+    public class BudgetRecord
+    {
+        public int Id { get; set; }
+        public decimal TotalIncome { get; set; }
+        public decimal TotalExpenses { get; set; }
+        public decimal NetWorth { get; set; }
+        public decimal SavingsRate { get; set; }
+        public decimal DebtToIncomeRatio { get; set; }
+        public decimal Salary { get; set; }
+        public decimal Investments { get; set; }
+        public decimal RentMortgage { get; set; }
+        public decimal Utilities { get; set; }
+        public decimal Insurance { get; set; }
+        public decimal LoanPayments { get; set; }
+        public decimal Groceries { get; set; }
+        public decimal Transportation { get; set; }
+        public decimal Subscriptions { get; set; }
+        public decimal Entertainment { get; set; }
+        public decimal SavingsBalance { get; set; }
+        public decimal InvestmentBalance { get; set; }
+        public decimal DebtBalance { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    }
 }

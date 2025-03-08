@@ -1,36 +1,35 @@
-/*
-Going to expose tthe endpoints here for adding and getting some budget data~
-GET all buckets
-POST a bucket
-*/
-
 using Microsoft.AspNetCore.Mvc;
 using BudgetBackend.Data;
 using BudgetBackend.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace BudgetBackend.Controllers;
 
 [Route("api/budget")]
 [ApiController]
-public class BudgetController : ControllerBase
+public class BudgetController(ApplicationDbContext context) : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
-
-    public BudgetController(ApplicationDbContext context)
-    {
-        _context = context;
-    }
+    private readonly ApplicationDbContext _context = context;
 
     [HttpGet]
-    public IActionResult GetAll()
+    public async Task<IActionResult> GetAll()
     {
-        var records = _context.BudgetRecords.ToList();
+        var records = await _context.BudgetRecords.ToListAsync();
         return Ok(records);
     }
 
     [HttpPost]
-    public IActionResult AddRecord([FromBody] BudgetRecord record)
+    public async Task<IActionResult> AddRecord([FromBody] BudgetRecord record)
     {
+        if (record == null)
+        {
+            return BadRequest("Invalid budget data.");
+        }
+
         _context.BudgetRecords.Add(record);
-        _context.SaveChanges();
-        return Ok(record);
+        await _context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetAll), new { id = record.Id }, record);
     }
 }
