@@ -13,6 +13,10 @@ namespace BudgetBackend.Models
         [ForeignKey("User")]
         public int UserId { get; set; }
 
+        [Required]
+        [MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
+
         public User? User { get; set; }
 
         [Required]
