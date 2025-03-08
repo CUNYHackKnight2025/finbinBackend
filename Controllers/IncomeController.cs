@@ -2,24 +2,30 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using BudgetBackend.Models;
+using BudgetBackend.Data;
 using System.Threading.Tasks;
-using System.Collections.Generic;
+using System.Linq;
 
 namespace BudgetBackend.Controllers;
 
 [Route("api/income")]
 [ApiController]
-public class IncomeController(IChatCompletionService chatCompletionService) : ControllerBase
+public class IncomeController(IChatCompletionService chatCompletionService, ApplicationDbContext dbContext) : ControllerBase
 {
     private readonly IChatCompletionService _chatCompletionService = chatCompletionService;
+    private readonly ApplicationDbContext _dbContext = dbContext;
 
-    [HttpPost("analyze")]
-    public async Task<IActionResult> AnalyzeIncome([FromBody] BudgetRecord budget)
+    [HttpPost("analyze/{userId}")]
+    public async Task<IActionResult> AnalyzeIncome(int userId)
     {
-        var chatHistory = new ChatHistory();
+        var income = _dbContext.Incomes.FirstOrDefault(i => i.FinancialSummaryId == userId);
+        if (income == null)
+        {
+            return NotFound(new { message = "Income data not found for the user." });
+        }
 
-        string userMessage = $"Analyze my budget: Salary - {budget.Salary:C}, Investments - {budget.Investments:C}";
-        userMessage += $", Expenses - {budget.TotalExpenses:C}, Savings - {budget.SavingsBalance:C}, Debt - {budget.DebtBalance:C}.";
+        var chatHistory = new ChatHistory();
+        string userMessage = $"Analyze my income: Salary - {income.Salary:C}, Investments - {income.Investments:C}, Business Income - {income.BusinessIncome:C}.";
 
         chatHistory.AddUserMessage(userMessage);
 
@@ -32,30 +38,10 @@ public class IncomeController(IChatCompletionService chatCompletionService) : Co
         {
             income_summary = new
             {
-                budget.Salary,
-                budget.Investments,
-                budget.TotalIncome
-            },
-            expense_analysis = new
-            {
-                budget.RentMortgage,
-                budget.Utilities,
-                budget.Insurance,
-                budget.LoanPayments,
-                budget.Groceries,
-                budget.Transportation,
-                budget.Subscriptions,
-                budget.Entertainment,
-                budget.TotalExpenses
-            },
-            financial_health = new
-            {
-                budget.SavingsBalance,
-                budget.InvestmentBalance,
-                budget.DebtBalance,
-                budget.NetWorth,
-                budget.SavingsRate,
-                budget.DebtToIncomeRatio
+                income.Salary,
+                income.Investments,
+                income.BusinessIncome,
+                TotalIncome = income.Salary + income.Investments + income.BusinessIncome
             },
             ai_analysis = response?.Content
         };

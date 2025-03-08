@@ -3,6 +3,7 @@ using BudgetBackend.Plugins;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,32 +14,31 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     )
 );
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend",
-        policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-});
-
 var openAiConfig = builder.Configuration.GetSection("AzureOpenAI");
 string? endpoint = openAiConfig["Endpoint"];
 string? apiKey = openAiConfig["ApiKey"];
 string? deploymentName = openAiConfig["DeploymentName"];
 
-builder.Services.AddAzureOpenAIChatCompletion(
-    deploymentName: deploymentName!,
-    apiKey: apiKey!,
-    endpoint: endpoint!
-);
-
-builder.Services.AddTransient<Kernel>(serviceProvider =>
+builder.Services.AddSingleton<Kernel>(serviceProvider =>
 {
-    return new Kernel(serviceProvider);
+    var kernelBuilder = Kernel.CreateBuilder();
+    kernelBuilder.AddAzureOpenAIChatCompletion(deploymentName!, apiKey!, endpoint!);
+    var kernel = kernelBuilder.Build();
+
+    return kernel;
 });
 
-builder.Services.AddSingleton<IncomeTrackerPlugin>();
+builder.Services.AddSingleton<IChatCompletionService>(serviceProvider =>
+{
+    var kernel = serviceProvider.GetRequiredService<Kernel>();
+    return kernel.GetRequiredService<IChatCompletionService>();
+});
 
-builder.Services.AddControllers();
-
+builder.Services.AddScoped<BudgetPlugin>();
+builder.Services.AddControllers().AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+    });;
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -51,14 +51,9 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BudgetBackend API v1"));
-    var swaggerUrl = $"http://localhost:{builder.Configuration["ASPNETCORE_URLS"]?.Split(":").Last() ?? "5000"}/swagger/index.html";
-    Console.WriteLine($"Swagger available at: {swaggerUrl}");
 }
 
 app.UseCors("AllowFrontend");
-
 app.UseHttpsRedirection();
-
 app.MapControllers();
-
 app.Run();
