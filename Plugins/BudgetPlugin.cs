@@ -43,7 +43,7 @@ public class BudgetPlugin(ApplicationDbContext dbContext)
             (summary.Expenses?.Subscriptions ?? 0m) +
             (summary.Expenses?.Entertainment ?? 0m);
 
-        return $"Total Expenses: {totalExpenses:C}. Breakdown - Rent: {summary.Expenses.RentMortgage:C}, Utilities: {summary.Expenses.Utilities:C}, Loans: {summary.Expenses.LoanPayments:C}.";
+        return $"Total Expenses: {totalExpenses:C}. Breakdown - Rent: {summary.Expenses?.RentMortgage:C}, Utilities: {summary.Expenses?.Utilities:C}, Loans: {summary.Expenses?.LoanPayments:C}.";
     }
 
     [KernelFunction]
