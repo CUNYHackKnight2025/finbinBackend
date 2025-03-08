@@ -6,51 +6,59 @@ using Microsoft.SemanticKernel;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔹 Configure Database (Azure SQL or Local SQL Server)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlServerOptions => sqlServerOptions.EnableRetryOnFailure()
+    )
+);
 
-// 🔹 Enable CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
         policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
-// 🔹 Add Controllers
+var openAiConfig = builder.Configuration.GetSection("AzureOpenAI");
+string? endpoint = openAiConfig["Endpoint"];
+string? apiKey = openAiConfig["ApiKey"];
+string? deploymentName = openAiConfig["DeploymentName"];
+
+builder.Services.AddAzureOpenAIChatCompletion(
+    deploymentName: deploymentName!,
+    apiKey: apiKey!,
+    endpoint: endpoint!
+);
+
+builder.Services.AddTransient<Kernel>(serviceProvider =>
+{
+    return new Kernel(serviceProvider);
+});
+
+builder.Services.AddSingleton<IncomeTrackerPlugin>();
+
 builder.Services.AddControllers();
 
-// 🔹 Enable Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "BudgetBackend API", Version = "v1" });
 });
 
-// 🔹 Register AI Plugins (Semantic Kernel)
-builder.Services.AddSingleton<Kernel>(sp =>
-{
-    var kernelBuilder = Kernel.CreateBuilder();
-    kernelBuilder.Plugins.AddFromType<IncomeTrackerPlugin>(); // Register AI Plugin
-    return kernelBuilder.Build();
-});
-
 var app = builder.Build();
 
-// 🔹 Enable Swagger UI
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BudgetBackend API v1"));
+    var swaggerUrl = $"http://localhost:{builder.Configuration["ASPNETCORE_URLS"]?.Split(":").Last() ?? "5000"}/swagger/index.html";
+    Console.WriteLine($"Swagger available at: {swaggerUrl}");
 }
 
-// 🔹 Enable CORS
 app.UseCors("AllowFrontend");
 
-// 🔹 Enable HTTPS Redirection
 app.UseHttpsRedirection();
 
-// 🔹 Map Controllers
 app.MapControllers();
 
 app.Run();
