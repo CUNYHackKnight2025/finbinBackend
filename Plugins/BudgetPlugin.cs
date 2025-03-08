@@ -1,9 +1,9 @@
 using Microsoft.SemanticKernel;
 using BudgetBackend.Data;
-using BudgetBackend.Models;
 using System.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 
+namespace BudgetBackend.Plugins;
 public class BudgetPlugin(ApplicationDbContext dbContext)
 {
     private readonly ApplicationDbContext _dbContext = dbContext;
