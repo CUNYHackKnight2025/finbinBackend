@@ -16,41 +16,45 @@ public class BudgetPlugin(ApplicationDbContext dbContext, IChatCompletionService
     [Description("Provides AI-powered recommendations for optimizing savings and expenses.")]
     public async Task<string> GetFinancialRecommendations(int userId)
     {
-        var user = await _dbContext.Users
-            .Include(u => u.FinancialSummary)
-                .ThenInclude(fs => fs!.Expenses)
-            .Include(u => u.Buckets)
-            .FirstOrDefaultAsync(u => u.Id == userId);
+        var summary = await _dbContext.FinancialSummaries
+            .Include(s => s.Income)
+            .Include(s => s.Expenses)
+            .FirstOrDefaultAsync(s => s.UserId == userId);
 
-        if (user == null || user.FinancialSummary == null || user.FinancialSummary.Expenses == null)
+        if (summary == null)
             return "User financial data not found.";
 
-        decimal totalIncome = user.FinancialSummary.TotalIncome;
-        decimal totalExpenses = user.FinancialSummary.TotalExpenses;
-        decimal savings = user.FinancialSummary.SavingsBalance;
-        var buckets = user.Buckets.OrderByDescending(b => b.PriorityScore).ToList();
+        decimal totalIncome = summary.TotalIncome;
+        decimal totalExpenses = summary.TotalExpenses;
+        decimal savings = summary.SavingsBalance;
+
+        Console.WriteLine($"🔍 Debug: Retrieved Total Income = {totalIncome:C} for User {userId}");
+
+        if (totalIncome <= 0)
+        {
+            return $"Debug: Retrieved totalIncome is zero or negative. Check database records for user {userId}.";
+        }
 
         // Step 1: Identify high spending categories
-        string spendingAnalysis = AnalyzeSpending(user.FinancialSummary.Expenses, totalIncome);
+        string spendingAnalysis = AnalyzeSpending(summary.Expenses!, totalIncome);
 
         // Step 2: Suggest savings adjustments
+        var buckets = await _dbContext.Buckets
+            .Where(b => b.UserId == userId)
+            .OrderByDescending(b => b.PriorityScore)
+            .ToListAsync();
+
         string savingsStrategy = SuggestSavingsAdjustments(buckets, savings);
 
         // Step 3: Generate AI response
         string prompt = $@"
-        User's total income: {totalIncome:C}
-        Total expenses: {totalExpenses:C}
-        Current savings balance: {savings:C}
-        Number of savings goals: {buckets.Count}
-        
-        Spending Analysis:
-        {spendingAnalysis}
+        The user has a total income of {totalIncome:C} and expenses of {totalExpenses:C}.
+        Their savings balance is {savings:C}.
+        They have {buckets.Count} savings goals.
+        Spending Analysis: {spendingAnalysis}
+        Savings Strategy: {savingsStrategy}
+        Based on this, generate a detailed, actionable financial recommendation.";
 
-        Suggested Savings Strategy:
-        {savingsStrategy}
-
-        Based on this information, generate a **detailed, actionable financial recommendation**.";
-        
         var chatHistory = new ChatHistory();
         chatHistory.AddUserMessage(prompt);
 
@@ -58,24 +62,61 @@ public class BudgetPlugin(ApplicationDbContext dbContext, IChatCompletionService
         return response?.Content ?? "No recommendations available.";
     }
 
+
+    [KernelFunction]
+    [Description("Provides AI-powered responses to financial questions.")]
+    public async Task<string> AskFinancialQuestion(int userId, string question)
+    {
+        var user = await _dbContext.Users
+            .Include(u => u.FinancialSummary)
+                .ThenInclude(fs => fs!.Income)
+            .Include(u => u.FinancialSummary)
+                .ThenInclude(fs => fs!.Expenses)
+            .Include(u => u.Buckets)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null || user.FinancialSummary == null)
+            return "User financial data not found.";
+
+        string financialContext = $@"
+        The user has a total income of {user.FinancialSummary.TotalIncome:C}.
+        Their total expenses amount to {user.FinancialSummary.TotalExpenses:C}.
+        Savings balance: {user.FinancialSummary.SavingsBalance:C}.
+        They have {user.Buckets.Count} savings goals.";
+
+        var chatHistory = new ChatHistory();
+        chatHistory.AddSystemMessage("You are an empathethic yet impactful AI financial assistant.");
+        chatHistory.AddUserMessage($"{financialContext}\nUser Question: {question}");
+
+        var response = await _chatService.GetChatMessageContentAsync(chatHistory);
+        return response?.Content ?? "No response available.";
+    }
+
+
     private string AnalyzeSpending(Expenses expenses, decimal totalIncome)
     {
+        if (totalIncome == 0)
+        {
+            return "Total income is zero, unable to analyze spending percentages.";
+        }
+
         var highSpendingCategories = new List<string>();
 
         if (expenses.RentMortgage / totalIncome > 0.35m)
-            highSpendingCategories.Add("🏠 Rent/Mortgage (above 35% of income)");
+            highSpendingCategories.Add("Rent/Mortgage (above 35% of income)");
 
         if (expenses.Entertainment / totalIncome > 0.1m)
-            highSpendingCategories.Add("🎭 Entertainment (above 10% of income)");
+            highSpendingCategories.Add("Entertainment (above 10% of income)");
 
         if (expenses.Subscriptions / totalIncome > 0.05m)
-            highSpendingCategories.Add("📺 Subscriptions (above 5% of income)");
+            highSpendingCategories.Add("Subscriptions (above 5% of income)");
 
         if (!highSpendingCategories.Any())
-            return "No excessive spending detected. Financial habits appear stable.";
+            return "No excessive spending detected.";
 
-        return $"High spending detected in: {string.Join(", ", highSpendingCategories)}.";
+        return "High spending detected in: " + string.Join(", ", highSpendingCategories);
     }
+
 
     private string SuggestSavingsAdjustments(List<Bucket> buckets, decimal savings)
     {

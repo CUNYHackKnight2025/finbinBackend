@@ -39,6 +39,7 @@ public class AIAnalysisController(BudgetPlugin budgetPlugin) : ControllerBase
         return Ok(new { analysis = result });
     }
 
+
     /// <summary>
     /// Analyzes the user's financial summary and provides guidance.
     /// </summary>
