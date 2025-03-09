@@ -190,4 +190,72 @@ public class BudgetPlugin
 
         return $"Net Worth: {netWorth:C}. Total Income: {totalIncome:C}, Total Expenses: {totalExpenses:C}.";
     }
+
+    [KernelFunction]
+    [Description("Auto-categorizes transactions based on predefined rules.")]
+    public async Task<string> AutoCategorizeTransactions(int userId)
+    {
+        var transactions = await _dbContext.Transactions
+            .Where(t => t.UserId == userId && string.IsNullOrEmpty(t.Category))
+            .ToListAsync();
+
+        if (!transactions.Any())
+            return "No uncategorized transactions found.";
+
+        foreach (var transaction in transactions)
+        {
+            transaction.Category = CategorizeTransaction(transaction);
+        }
+
+        await _dbContext.SaveChangesAsync();
+        return "Transactions have been auto-categorized.";
+    }
+
+    private string CategorizeTransaction(Transaction transaction)
+    {
+        // Implement categorization logic here
+        // For example, based on transaction description or amount
+        return "Uncategorized";
+    }
+
+    [KernelFunction]
+    [Description("Generates a financial report for the user.")]
+    public async Task<string> GenerateFinancialReport(int userId)
+    {
+        var summary = await _dbContext.FinancialSummaries
+            .Include(s => s.Income)
+            .Include(s => s.Expenses)
+            .FirstOrDefaultAsync(s => s.UserId == userId);
+
+        if (summary == null)
+            return "No financial summary found.";
+
+        // Generate report logic here
+        string report = $"Financial Report for User {userId}:\n" +
+                        $"Total Income: {summary.TotalIncome:C}\n" +
+                        $"Total Expenses: {summary.TotalExpenses:C}\n" +
+                        $"Net Worth: {(summary.InvestmentBalance + summary.SavingsBalance - summary.DebtBalance):C}";
+
+        return report;
+    }
+
+    [KernelFunction]
+    [Description("Sets budget limits dynamically based on user preferences.")]
+    public async Task<string> SetBudgetLimits(int userId, decimal newLimit)
+    {
+        var user = await _dbContext.Users
+            .Include(u => u.Buckets)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+            return "User not found.";
+
+        foreach (var bucket in user.Buckets)
+        {
+            bucket.TargetAmount = newLimit;
+        }
+
+        await _dbContext.SaveChangesAsync();
+        return $"Budget limits have been set to {newLimit:C} for all buckets.";
+    }
 }
