@@ -1,0 +1,39 @@
+{
+    "Logging": {
+      "LogLevel": {
+        "Default": "Information",
+        "Microsoft.AspNetCore": "Warning"
+      }
+    },
+    "AllowedHosts": "*",
+  
+    "ConnectionStrings": {
+      "DefaultConnection": "Server=tcp:finbinserver.database.windows.net,1433;Initial Catalog=xxxxx;"
+    },
+  
+    "JwtSettings": {
+      "SecretKey": "xxxx",
+      "Issuer": "BudgetBackend",
+      "Audience": "BudgetFrontend",
+      "ExpirationHours": 168
+    },
+  
+    "AiServiceSettings": {
+      "ApiKey": "xxxx",
+      "Endpoint": "https://xxxx.cognitiveservices.azure.com/",
+      "DeploymentName": "gpt-4o-mini",
+      "ApiVersion": "2023-05-15",
+      "ModelId": "gpt-4o-mini"
+    },
+  
+    "EmailSettings": {
+      "FromEmail": "noreply@finbin.com",
+      "FromName": "FinBin",
+      "SmtpServer": "smtp.yourprovider.com",
+      "SmtpPort": 587,
+      "Username": "your_username",
+      "Password": "your_password",
+      "EnableSsl": true
+    }
+  }
+  

@@ -1,7 +1,6 @@
 using BudgetBackend.Data;
 using BudgetBackend.Plugins;
 using BudgetBackend.Services;
-using BudgetBackend.Agents;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -9,10 +8,8 @@ using Microsoft.OpenApi.Models;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
-using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using System.Text;
 using System.Reflection;
-using System.IO;
 
 namespace BudgetBackend
 {
