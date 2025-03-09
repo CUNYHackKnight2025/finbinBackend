@@ -5,9 +5,14 @@ namespace BudgetBackend.Controllers;
 
 [Route("api/ai-chat")]
 [ApiController]
-public class FinancialChatController(BudgetPlugin budgetPlugin) : ControllerBase
+public class FinancialChatController : ControllerBase
 {
-    private readonly BudgetPlugin _budgetPlugin = budgetPlugin;
+    private readonly BudgetPlugin _budgetPlugin;
+
+    public FinancialChatController(BudgetPlugin budgetPlugin)
+    {
+        _budgetPlugin = budgetPlugin;
+    }
 
     [HttpPost("{userId}")]
     public async Task<IActionResult> AskFinancialQuestion(int userId, [FromBody] ChatRequest request)
@@ -16,6 +21,13 @@ public class FinancialChatController(BudgetPlugin budgetPlugin) : ControllerBase
             return BadRequest("Question cannot be empty.");
 
         var response = await _budgetPlugin.AskFinancialQuestion(userId, request.Question);
+        return Ok(new { response });
+    }
+
+    [HttpPost("suggest-adjustments/{userId}")]
+    public async Task<IActionResult> SuggestBudgetAdjustments(int userId)
+    {
+        var response = await _budgetPlugin.GetFinancialRecommendations(userId);
         return Ok(new { response });
     }
 }
