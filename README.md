@@ -101,7 +101,7 @@ cd FinBin
 - Update `appsettings.Development.json`:
 ```json
 "ConnectionStrings": {
-  "DefaultConnection": "Server=localhost;Database=FinBinDB;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
+  "AZURE_SQL_CONNECTIONSTRING": "Server=localhost;Database=FinBinDB;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
 }
 ```
 
@@ -109,7 +109,7 @@ cd FinBin
 - Update `appsettings.json` with your Azure SQL Database connection string:
 ```json
 "ConnectionStrings": {
-  "DefaultConnection": "Server=tcp:your-server.database.windows.net,1433;Initial Catalog=FinBinDB;Persist Security Info=False;User ID=your-username;Password=your-password;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  "AZURE_SQL_CONNECTIONSTRING": "Server=tcp:your-server.database.windows.net,1433;Initial Catalog=FinBinDB;Persist Security Info=False;User ID=your-username;Password=your-password;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
 }
 ```
 

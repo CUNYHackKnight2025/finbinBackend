@@ -8,7 +8,7 @@
     "AllowedHosts": "*",
   
     "ConnectionStrings": {
-      "DefaultConnection": "Server=tcp:finbinserver.database.windows.net,1433;Initial Catalog=xxxxx;"
+      "AZURE_SQL_CONNECTIONSTRING": "Server=tcp:finbinserver.database.windows.net,1433;Initial Catalog=xxxxx;"
     },
   
     "JwtSettings": {
