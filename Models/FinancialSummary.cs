@@ -21,6 +21,18 @@ namespace BudgetBackend.Models
 
         public Income? Income { get; set; }
         public Expenses? Expenses { get; set; }
+        [NotMapped]
+        public decimal TotalIncome => (Income?.Salary ?? 0) + (Income?.Investments ?? 0) + (Income?.BusinessIncome ?? 0);
+        
+        [NotMapped]
+        public decimal TotalExpenses =>
+            (Expenses?.RentMortgage ?? 0) +
+            (Expenses?.Utilities ?? 0) +
+            (Expenses?.Insurance ?? 0) +
+            (Expenses?.LoanPayments ?? 0) +
+            (Expenses?.Groceries ?? 0) +
+            (Expenses?.Transportation ?? 0) +
+            (Expenses?.Subscriptions ?? 0) +
+            (Expenses?.Entertainment ?? 0);
     }
-
 }

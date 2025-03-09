@@ -184,7 +184,7 @@ namespace BudgetBackend.Migrations
             modelBuilder.Entity("BudgetBackend.Models.Bucket", b =>
                 {
                     b.HasOne("BudgetBackend.Models.User", "User")
-                        .WithMany()
+                        .WithMany("Buckets")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -234,6 +234,8 @@ namespace BudgetBackend.Migrations
 
             modelBuilder.Entity("BudgetBackend.Models.User", b =>
                 {
+                    b.Navigation("Buckets");
+
                     b.Navigation("FinancialSummary");
                 });
 #pragma warning restore 612, 618

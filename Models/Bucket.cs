@@ -13,11 +13,11 @@ namespace BudgetBackend.Models
         [ForeignKey("User")]
         public int UserId { get; set; }
 
+        public User? User { get; set; }
+
         [Required]
         [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
-
-        public User? User { get; set; }
 
         [Required]
         [Column(TypeName = "decimal(18,2)")]
