@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Brandon\\finbinBackend\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{EB414F87-B2EB-4E2C-BEE5-CD96A471C832}|BudgetBackend.csproj|c:\\users\\brandon\\finbinbackend\\.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{EB414F87-B2EB-4E2C-BEE5-CD96A471C832}|BudgetBackend.csproj|solutionrelative:.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": ".gitignore",
+              "DocumentMoniker": "C:\\Users\\Brandon\\finbinBackend\\.gitignore",
+              "RelativeDocumentMoniker": ".gitignore",
+              "ToolTip": "C:\\Users\\Brandon\\finbinBackend\\.gitignore",
+              "RelativeToolTip": ".gitignore",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAA==",
+              "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACsSURBVDhPY2SAgsry0vsMDP8VYHxMwPjgzz\u002BGwO7u7gtwof///8PZleUl/3/9\u002BoUTV5aX/G9qqH1fWlpqANfEwMDAhMwhBBISkwV4uTn2IxvCgqoEAk6dOoUuxCAgIMAwfdoUBgYGBgEWJob9DAwMgigKCHkB3TswfSR5ARvAasCpU6ewYrxg1AvkA6wGoDt9cHuBEcaoLC\u002B\u002Bz8DAiCc7I4P/D9o7exUZGBgYALNmGfQiJVocAAAAAElFTkSuQmCC",
+              "WhenOpened": "2025-03-09T07:18:47.694Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
