@@ -72,6 +72,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BudgetBackend API v1"));
+    Console.WriteLine("Swagger URL: http://localhost:5263/swagger/index.html");
 }
 
 app.UseCors("AllowFrontend");

@@ -7,10 +7,16 @@ using BudgetBackend.Models;
 
 namespace BudgetBackend.Plugins;
 
-public class BudgetPlugin(ApplicationDbContext dbContext, IChatCompletionService chatService)
+public class BudgetPlugin
 {
-    private readonly ApplicationDbContext _dbContext = dbContext;
-    private readonly IChatCompletionService _chatService = chatService;
+    private readonly ApplicationDbContext _dbContext;
+    private readonly IChatCompletionService _chatService;
+
+    public BudgetPlugin(ApplicationDbContext dbContext, IChatCompletionService chatService)
+    {
+        _dbContext = dbContext;
+        _chatService = chatService;
+    }
 
     [KernelFunction]
     [Description("Provides AI-powered recommendations for optimizing savings and expenses.")]
@@ -27,8 +33,6 @@ public class BudgetPlugin(ApplicationDbContext dbContext, IChatCompletionService
         decimal totalIncome = summary.TotalIncome;
         decimal totalExpenses = summary.TotalExpenses;
         decimal savings = summary.SavingsBalance;
-
-        Console.WriteLine($"🔍 Debug: Retrieved Total Income = {totalIncome:C} for User {userId}");
 
         if (totalIncome <= 0)
         {
@@ -62,7 +66,6 @@ public class BudgetPlugin(ApplicationDbContext dbContext, IChatCompletionService
         return response?.Content ?? "No recommendations available.";
     }
 
-
     [KernelFunction]
     [Description("Provides AI-powered responses to financial questions.")]
     public async Task<string> AskFinancialQuestion(int userId, string question)
@@ -85,13 +88,12 @@ public class BudgetPlugin(ApplicationDbContext dbContext, IChatCompletionService
         They have {user.Buckets.Count} savings goals.";
 
         var chatHistory = new ChatHistory();
-        chatHistory.AddSystemMessage("You are an empathethic yet impactful AI financial assistant.");
+        chatHistory.AddSystemMessage("You are an empathetic yet impactful AI financial assistant.");
         chatHistory.AddUserMessage($"{financialContext}\nUser Question: {question}");
 
         var response = await _chatService.GetChatMessageContentAsync(chatHistory);
         return response?.Content ?? "No response available.";
     }
-
 
     private string AnalyzeSpending(Expenses expenses, decimal totalIncome)
     {
@@ -117,7 +119,6 @@ public class BudgetPlugin(ApplicationDbContext dbContext, IChatCompletionService
         return "High spending detected in: " + string.Join(", ", highSpendingCategories);
     }
 
-
     private string SuggestSavingsAdjustments(List<Bucket> buckets, decimal savings)
     {
         if (!buckets.Any())
@@ -132,7 +133,7 @@ public class BudgetPlugin(ApplicationDbContext dbContext, IChatCompletionService
 
             if (suggestedAllocation > 0)
             {
-                recommendations.Add($"💰 Allocate {suggestedAllocation:C} to **{bucket.Name}** (Priority: {bucket.PriorityScore:P}).");
+                recommendations.Add($"Allocate {suggestedAllocation:C} to **{bucket.Name}** (Priority: {bucket.PriorityScore:P}).");
             }
         }
 
