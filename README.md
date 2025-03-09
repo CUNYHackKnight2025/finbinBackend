@@ -7,6 +7,8 @@
 # AI Agent Finance Team Powered Budget App
 ## A full suite of Financial Analysis Team at the palm of your hand
 
+[![Build and deploy ASP.Net Core app to Azure Web App - finbinapis](https://github.com/CUNYHackKnight2025/finbinBackend/actions/workflows/prod_finbinapis.yml/badge.svg)](https://github.com/CUNYHackKnight2025/finbinBackend/actions/workflows/prod_finbinapis.yml)
+
 **FinBin** is a financial planning API that helps users manage their budgets, track expenses, and save towards financial goals (called "buckets"). It integrates with **Microsoft Semantic Kernel** to provide AI-driven financial insights and savings recommendations while leveraging **Azure SQL Database** for secure and scalable data storage.
 
 ## Quick Start (For Hackathon Judges)
