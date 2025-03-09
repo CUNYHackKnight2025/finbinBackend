@@ -15,5 +15,6 @@ namespace BudgetBackend.Models
         public required string Email { get; set; }
 
         public FinancialSummary? FinancialSummary { get; set; }  
+        public ICollection<Bucket> Buckets { get; set; } = [];
     }
 }

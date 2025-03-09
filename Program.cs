@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,27 +19,47 @@ var openAiConfig = builder.Configuration.GetSection("AzureOpenAI");
 string? endpoint = openAiConfig["Endpoint"];
 string? apiKey = openAiConfig["ApiKey"];
 string? deploymentName = openAiConfig["DeploymentName"];
+string? modelId = openAiConfig["ModelId"];
+
+if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(deploymentName) || string.IsNullOrEmpty(apiKey))
+{
+    throw new InvalidOperationException("Azure OpenAI configuration is missing or incorrect.");
+}
+
+builder.Services.AddSingleton<IChatCompletionService>(serviceProvider =>
+{
+    return new AzureOpenAIChatCompletionService(
+        deploymentName: deploymentName!,
+        apiKey: apiKey!,
+        endpoint: endpoint!,
+        modelId: modelId!
+    );
+});
 
 builder.Services.AddSingleton<Kernel>(serviceProvider =>
 {
     var kernelBuilder = Kernel.CreateBuilder();
-    kernelBuilder.AddAzureOpenAIChatCompletion(deploymentName!, apiKey!, endpoint!);
-    var kernel = kernelBuilder.Build();
 
-    return kernel;
-});
+    kernelBuilder.AddAzureOpenAIChatCompletion(
+        deploymentName: deploymentName!,
+        apiKey: apiKey!,
+        endpoint: endpoint!,
+        modelId: modelId!,
+        serviceId: "openai-service"
+    );
 
-builder.Services.AddSingleton<IChatCompletionService>(serviceProvider =>
-{
-    var kernel = serviceProvider.GetRequiredService<Kernel>();
-    return kernel.GetRequiredService<IChatCompletionService>();
+    kernelBuilder.Plugins.AddFromType<BudgetPlugin>();
+
+    return kernelBuilder.Build();
 });
 
 builder.Services.AddScoped<BudgetPlugin>();
+
 builder.Services.AddControllers().AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-    });;
+{
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

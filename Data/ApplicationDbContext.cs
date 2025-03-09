@@ -11,6 +11,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<FinancialSummary> FinancialSummaries { get; set; }
     public DbSet<Income> Incomes { get; set; }
     public DbSet<Expenses> Expenses { get; set; }
+    public DbSet<Bucket> Buckets { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
