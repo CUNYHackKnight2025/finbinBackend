@@ -1,8 +1,12 @@
-# FinBin - AI-Powered Budget Management API
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/796fef5f-1391-4d28-a4c2-32328ce7623d">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/d5145b77-fecd-4e46-949a-b8510e097553">
+  <img src="https://github.com/user-attachments/assets/d5145b77-fecd-4e46-949a-b8510e097553">
+</picture>
+
+# FinBins - AI-Powered Budget Management API
 
 **FinBin** is a financial planning API that helps users manage their budgets, track expenses, and save towards financial goals (called "buckets"). It integrates with **Microsoft Semantic Kernel** to provide AI-driven financial insights and savings recommendations while leveraging **Azure SQL Database** for secure and scalable data storage.
-
-![FinBin Logo](https://via.placeholder.com/150?text=FinBin)
 
 ## Quick Start (For Hackathon Judges)
 
