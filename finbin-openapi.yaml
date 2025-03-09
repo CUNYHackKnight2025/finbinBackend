@@ -1,0 +1,737 @@
+openapi: 3.0.1
+info:
+  title: FinBin API
+  description: |
+    Financial management and budget tracking API for FinBin application.
+    This API provides endpoints for user authentication, transaction management,
+    budget tracking, financial insights, and AI-powered financial assistance.
+  version: '1.0'
+  contact:
+    name: FinBin Support
+    email: support@example.com
+  license:
+    name: Proprietary
+servers:
+  - url: https://finbinbackend.azurewebsites.net
+    description: Production server
+  - url: https://finbin-apim.azure-api.net/finbin
+    description: API Management endpoint
+  - url: http://localhost:3000
+    description: Local development
+security:
+  - bearerAuth: []
+
+paths:
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              example:
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                expiresAt: "2023-12-31T23:59:59Z"
+                user:
+                  id: "550e8400-e29b-41d4-a716-446655440000"
+                  email: "user@example.com"
+                  firstName: "John"
+                  lastName: "Doe"
+                  createdAt: "2023-01-01T12:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user profile
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440000"
+                email: "user@example.com"
+                firstName: "John"
+                lastName: "Doe"
+                createdAt: "2023-01-01T12:00:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/transactions:
+    get:
+      tags:
+        - Transactions
+      summary: Get user transactions
+      operationId: getTransactions
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of transactions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  totalCount:
+                    type: integer
+                  page:
+                    type: integer
+                  pageSize:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Transactions
+      summary: Create new transaction
+      operationId: createTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionCreate'
+      responses:
+        '201':
+          description: Transaction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/transactions/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Transactions
+      summary: Get transaction by ID
+      operationId: getTransaction
+      responses:
+        '200':
+          description: Transaction details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Transactions
+      summary: Update transaction
+      operationId: updateTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionUpdate'
+      responses:
+        '200':
+          description: Transaction updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Transactions
+      summary: Delete transaction
+      operationId: deleteTransaction
+      responses:
+        '204':
+          description: Transaction deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/chat:
+    post:
+      tags:
+        - AI Chat
+      summary: Send a message to the financial AI assistant
+      operationId: chatWithAI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: AI response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/budgets:
+    get:
+      tags:
+        - Budgets
+      summary: Get user budgets
+      operationId: getBudgets
+      responses:
+        '200':
+          description: List of budgets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Budget'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Budgets
+      summary: Create new budget
+      operationId: createBudget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BudgetCreate'
+      responses:
+        '201':
+          description: Budget created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/insights:
+    get:
+      tags:
+        - Insights
+      summary: Get financial insights
+      operationId: getInsights
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month, quarter, year]
+            default: month
+      responses:
+        '200':
+          description: Financial insights
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Insights'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/categories:
+    get:
+      tags:
+        - Categories
+      summary: Get available transaction categories
+      operationId: getCategories
+      responses:
+        '200':
+          description: List of available categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+              example:
+                - id: "1"
+                  name: "Groceries"
+                  type: "expense"
+                  icon: "shopping_cart"
+                - id: "2"
+                  name: "Salary"
+                  type: "income"
+                  icon: "payments"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/reports/summary:
+    get:
+      tags:
+        - Reports
+      summary: Get financial summary report
+      operationId: getFinancialSummary
+      parameters:
+        - name: period
+          in: query
+          description: Time period for the report
+          schema:
+            type: string
+            enum: [week, month, quarter, year]
+            default: month
+      responses:
+        '200':
+          description: Financial summary report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Authorization header using the Bearer scheme
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+            
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - firstName
+        - lastName
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        firstName:
+          type: string
+        lastName:
+          type: string
+      example:
+        email: "user@example.com"
+        password: "securePassword123!"
+        firstName: "John"
+        lastName: "Doe"
+    
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        user:
+          $ref: '#/components/schemas/User'
+    
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+        description:
+          type: string
+        category:
+          type: string
+        date:
+          type: string
+          format: date-time
+        type:
+          type: string
+          enum: [income, expense]
+        tags:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
+    TransactionCreate:
+      type: object
+      required:
+        - amount
+        - description
+        - category
+        - type
+      properties:
+        amount:
+          type: number
+          format: double
+        description:
+          type: string
+        category:
+          type: string
+        date:
+          type: string
+          format: date-time
+        type:
+          type: string
+          enum: [income, expense]
+        tags:
+          type: array
+          items:
+            type: string
+
+    TransactionUpdate:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+        description:
+          type: string
+        category:
+          type: string
+        date:
+          type: string
+          format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+    
+    Budget:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        amount:
+          type: number
+          format: double
+        spent:
+          type: number
+          format: double
+        category:
+          type: string
+        period:
+          type: string
+          enum: [daily, weekly, monthly, yearly]
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
+    BudgetCreate:
+      type: object
+      required:
+        - name
+        - amount
+        - category
+        - period
+      properties:
+        name:
+          type: string
+        amount:
+          type: number
+          format: double
+        category:
+          type: string
+        period:
+          type: string
+          enum: [daily, weekly, monthly, yearly]
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+    
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+        conversationId:
+          type: string
+          format: uuid
+          description: Optional conversation ID to continue a conversation
+    
+    ChatResponse:
+      type: object
+      properties:
+        responseText:
+          type: string
+        conversationId:
+          type: string
+          format: uuid
+        suggestedActions:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              action:
+                type: string
+    
+    Insights:
+      type: object
+      properties:
+        topExpenseCategories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryInsight'
+        monthlySpendingTrend:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrendPoint'
+        savingsRate:
+          type: number
+          format: double
+        budgetPerformance:
+          type: array
+          items:
+            $ref: '#/components/schemas/BudgetPerformance'
+    
+    CategoryInsight:
+      type: object
+      properties:
+        category:
+          type: string
+        amount:
+          type: number
+          format: double
+        percentage:
+          type: number
+          format: double
+    
+    TrendPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        value:
+          type: number
+          format: double
+    
+    BudgetPerformance:
+      type: object
+      properties:
+        name:
+          type: string
+        budgeted:
+          type: number
+          format: double
+        actual:
+          type: number
+          format: double
+        variance:
+          type: number
+          format: double
+    
+    FinancialSummary:
+      type: object
+      properties:
+        totalIncome:
+          type: number
+          format: double
+        totalExpenses:
+          type: number
+          format: double
+        netSavings:
+          type: number
+          format: double
+        savingsRate:
+          type: number
+          format: double
+        topExpenseCategories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryInsight'
+        topIncomeCategories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryInsight'
+        periodStart:
+          type: string
+          format: date
+        periodEnd:
+          type: string
+          format: date
+    
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [income, expense]
+        icon:
+          type: string
+          description: Material icon name or custom icon identifier
+      required:
+        - id
+        - name
+        - type
+    
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
