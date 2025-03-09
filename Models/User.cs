@@ -21,7 +21,7 @@ namespace BudgetBackend.Models
         public byte[] PasswordSalt { get; set; } = [];
 
         // Properties for password reset functionality
-        public string ResetToken { get; set; }
+        public string? ResetToken { get; set; }
         public DateTime? ResetTokenExpires { get; set; }
 
         public FinancialSummary? FinancialSummary { get; set; }  

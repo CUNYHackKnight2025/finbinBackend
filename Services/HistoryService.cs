@@ -18,7 +18,7 @@ namespace BudgetBackend.Services
             _chatService = chatService;
         }
 
-        public async Task AddHistoryEntryAsync(int userId, string eventType, string description, string additionalData = null)
+        public async Task AddHistoryEntryAsync(int userId, string eventType, string description, string? additionalData = null)
         {
             var historyEntry = new UserHistory
             {
@@ -98,7 +98,7 @@ namespace BudgetBackend.Services
                 .ToListAsync();
 
             if (!entries.Any())
-                return null;
+                throw new InvalidOperationException("No history entries found to summarize.");
 
             // Build context for the AI summary
             var builder = new System.Text.StringBuilder();
@@ -118,7 +118,7 @@ namespace BudgetBackend.Services
             chatHistory.AddUserMessage(builder.ToString());
 
             var response = await _chatService.GetChatMessageContentAsync(chatHistory);
-            string summaryText = response.Content;
+            string? summaryText = response.Content;
 
             // Create summary record
             var summary = new HistorySummary
@@ -126,7 +126,7 @@ namespace BudgetBackend.Services
                 UserId = userId,
                 FromDate = fromDate,
                 ToDate = toDate,
-                SummaryText = summaryText,
+                SummaryText = summaryText!,
                 SummarizedEntryIds = JsonSerializer.Serialize(entries.Select(e => e.Id))
             };
 
