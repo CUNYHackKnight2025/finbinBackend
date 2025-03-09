@@ -13,6 +13,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Expenses> Expenses { get; set; }
     public DbSet<Bucket> Buckets { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
+    public DbSet<UserHistory> UserHistories { get; set; }
+    public DbSet<HistorySummary> HistorySummaries { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

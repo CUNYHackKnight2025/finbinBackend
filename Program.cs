@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using System.Text;
 
 namespace BudgetBackend
@@ -66,11 +67,17 @@ namespace BudgetBackend
                 return kernelBuilder.Build();
             });
 
+            // Add AI services
+            builder.Services.AddAIServices(builder.Configuration);
+
             // Register TokenService
             builder.Services.AddScoped<TokenService>();
 
             // Register AgentFactory - specify the correct namespace
             builder.Services.AddScoped<BudgetBackend.Agents.AgentFactory>();
+
+            // Register history service
+            builder.Services.AddScoped<IHistoryService, HistoryService>();
 
             // JWT Authentication configuration
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -146,19 +153,38 @@ namespace BudgetBackend
                 });
             });
 
+            // Configure email settings
+            builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+            builder.Services.AddScoped<IEmailService, EmailService>();
+
+            // Add Application Insights if in production
+            if (!builder.Environment.IsDevelopment())
+            {
+                builder.Services.AddApplicationInsightsTelemetry();
+            }
+
             var app = builder.Build();
 
             // Apply migrations at startup
-            using (var scope = app.Services.CreateScope())
+            // Only do this in development - for production use proper migration strategy
+            if (app.Environment.IsDevelopment())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                dbContext.Database.Migrate();
+                using (var scope = app.Services.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    dbContext.Database.Migrate();
+                }
             }
 
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BudgetBackend API v1"));
+            }
+            else 
+            {
+                app.UseExceptionHandler("/Error");
+                app.UseHsts();
             }
 
             app.UseCors("AllowFrontend");
