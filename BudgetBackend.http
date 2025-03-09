@@ -1,4 +1,4 @@
-@BudgetBackend_HostAddress = finbinserver-c7fadze8cwhuf3eu.eastus2-01.azurewebsites.net
+@BudgetBackend_HostAddress = finbinbackendserver-a8ejd6awhhgbegg0.eastus2-01.azurewebsites.net
 
 GET {{BudgetBackend_HostAddress}}
 Accept: application/json

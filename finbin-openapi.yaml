@@ -4,7 +4,7 @@ info:
   description: |
     Financial management and budget tracking API for FinBin application.
     This API provides endpoints for user authentication, transaction management,
-    budget tracking, financial insights, and AI-powered financial assistance.
+    savings buckets, financial insights, and AI-powered financial assistance.
   version: '1.0'
   contact:
     name: FinBin Support
@@ -12,11 +12,11 @@ info:
   license:
     name: Proprietary
 servers:
-  - url: https://finbinbackend.azurewebsites.net
+  - url: https://finbinserver-c7fadze8cwhuf3eu.eastus2-01.azurewebsites.net
     description: Production server
   - url: https://finbin-apim.azure-api.net/finbin
     description: API Management endpoint
-  - url: http://localhost:3000
+  - url: http://localhost:5263
     description: Local development
 security:
   - bearerAuth: []
@@ -33,25 +33,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterRequest'
+              $ref: '#/components/schemas/RegisterDTO'
       responses:
         '201':
           description: User created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
-              example:
-                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                expiresAt: "2023-12-31T23:59:59Z"
-                user:
-                  id: "550e8400-e29b-41d4-a716-446655440000"
-                  email: "user@example.com"
-                  firstName: "John"
-                  lastName: "Doe"
-                  createdAt: "2023-01-01T12:00:00Z"
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: '#/components/schemas/AuthResponseDTO'
 
   /api/auth/login:
     post:
@@ -64,38 +53,431 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              $ref: '#/components/schemas/LoginDTO'
       responses:
         '200':
           description: Login successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
+                $ref: '#/components/schemas/AuthResponseDTO'
         '401':
           $ref: '#/components/responses/Unauthorized'
-
-  /api/auth/me:
-    get:
+          
+  /api/auth/forgot-password:
+    post:
       tags:
         - Authentication
-      summary: Get current user profile
-      operationId: getCurrentUser
+      summary: Request password reset
+      operationId: forgotPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordDTO'
       responses:
         '200':
-          description: Current user profile
+          description: Password reset email sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              
+  /api/auth/verify-reset-token:
+    post:
+      tags:
+        - Authentication
+      summary: Verify reset token validity
+      operationId: verifyResetToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyResetTokenDTO'
+      responses:
+        '200':
+          description: Token validity response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+              
+  /api/auth/reset-password:
+    post:
+      tags:
+        - Authentication
+      summary: Reset password with token
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordDTO'
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/users/create:
+    post:
+      tags:
+        - Users
+      summary: Create a new user
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: User created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-              example:
-                id: "550e8400-e29b-41d4-a716-446655440000"
-                email: "user@example.com"
-                firstName: "John"
-                lastName: "Doe"
-                createdAt: "2023-01-01T12:00:00Z"
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+          
+  /api/users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get user details
+      operationId: getUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/financial-summary/{userId}:
+    get:
+      tags:
+        - Financial Summary
+      summary: Retrieve user's financial summary
+      operationId: getFinancialSummary
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Financial summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialSummary'
+        '404':
+          $ref: '#/components/responses/NotFound'
+          
+  /api/financial-summary/add/{userId}:
+    post:
+      tags:
+        - Financial Summary
+      summary: Add financial summary for user
+      operationId: addFinancialSummary
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FinancialSummary'
+      responses:
+        '201':
+          description: Financial summary created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialSummary'
+                
+  /api/financial-summary/update/{userId}:
+    put:
+      tags:
+        - Financial Summary
+      summary: Update financial summary
+      operationId: updateFinancialSummary
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FinancialSummary'
+      responses:
+        '200':
+          description: Financial summary updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialSummary'
+                
+  /api/financial-summary/delete/{userId}:
+    delete:
+      tags:
+        - Financial Summary
+      summary: Delete financial summary
+      operationId: deleteFinancialSummary
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Financial summary deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/buckets:
+    post:
+      tags:
+        - Buckets
+      summary: Create new savings bucket
+      operationId: createBucket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Bucket'
+      responses:
+        '201':
+          description: Bucket created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bucket'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/buckets/{userId}:
+    get:
+      tags:
+        - Buckets
+      summary: Get user buckets
+      operationId: getUserBuckets
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of user's savings buckets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bucket'
+
+  /api/buckets/{userId}/{bucketId}:
+    get:
+      tags:
+        - Buckets
+      summary: Get bucket by ID
+      operationId: getBucket
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: bucketId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Bucket details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bucket'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Buckets
+      summary: Update bucket
+      operationId: updateBucket
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: bucketId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Bucket'
+      responses:
+        '200':
+          description: Bucket updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bucket'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Buckets
+      summary: Delete bucket
+      operationId: deleteBucket
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: bucketId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Bucket deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/buckets/{userId}/{bucketId}/priority:
+    put:
+      tags:
+        - Buckets
+      summary: Update bucket priority
+      operationId: updateBucketPriority
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: bucketId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newPriorityScore:
+                  type: number
+                  format: double
+      responses:
+        '200':
+          description: Priority updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/buckets/{userId}/adjust-expenses:
+    get:
+      tags:
+        - Buckets
+      summary: Get expense adjustment suggestions
+      operationId: getExpenseAdjustments
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Suggested expense adjustments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  suggestions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        category:
+                          type: string
+                        currentAmount:
+                          type: number
+                          format: double
+                        suggestedAmount:
+                          type: number
+                          format: double
+                        savings:
+                          type: number
+                          format: double
+                        reason:
+                          type: string
 
   /api/transactions:
     get:
@@ -103,47 +485,15 @@ paths:
         - Transactions
       summary: Get user transactions
       operationId: getTransactions
-      parameters:
-        - name: startDate
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: endDate
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-        - name: pageSize
-          in: query
-          schema:
-            type: integer
-            default: 20
       responses:
         '200':
           description: List of transactions
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Transaction'
-                  totalCount:
-                    type: integer
-                  page:
-                    type: integer
-                  pageSize:
-                    type: integer
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
     post:
       tags:
         - Transactions
@@ -154,7 +504,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TransactionCreate'
+              $ref: '#/components/schemas/Transaction'
       responses:
         '201':
           description: Transaction created
@@ -162,24 +512,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Transaction'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
 
   /api/transactions/{id}:
-    parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
     get:
       tags:
         - Transactions
       summary: Get transaction by ID
       operationId: getTransaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
       responses:
         '200':
           description: Transaction details
@@ -194,12 +539,18 @@ paths:
         - Transactions
       summary: Update transaction
       operationId: updateTransaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TransactionUpdate'
+              $ref: '#/components/schemas/Transaction'
       responses:
         '200':
           description: Transaction updated
@@ -207,8 +558,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Transaction'
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
     delete:
@@ -216,149 +565,260 @@ paths:
         - Transactions
       summary: Delete transaction
       operationId: deleteTransaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
       responses:
-        '204':
+        '200':
           description: Transaction deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /api/chat:
+  /api/ai-analysis/recommendations/{userId}:
+    get:
+      tags:
+        - AI Analysis
+      summary: Get financial recommendations
+      operationId: getFinancialRecommendations
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: AI-generated financial recommendations
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/ai-analysis/income/{userId}:
+    get:
+      tags:
+        - AI Analysis
+      summary: Analyze income
+      operationId: analyzeIncome
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Income analysis
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/ai-analysis/expenses/{userId}:
+    get:
+      tags:
+        - AI Analysis
+      summary: Analyze expenses
+      operationId: analyzeExpenses
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Expense analysis
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/ai-analysis/summary/{userId}:
+    get:
+      tags:
+        - AI Analysis
+      summary: Analyze financial summary
+      operationId: analyzeFinancialSummary
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Financial summary analysis
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/ai-chat/{userId}:
     post:
       tags:
         - AI Chat
-      summary: Send a message to the financial AI assistant
-      operationId: chatWithAI
+      summary: Ask financial question
+      operationId: askFinancialQuestion
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ChatRequest'
+              type: object
+              properties:
+                question:
+                  type: string
       responses:
         '200':
           description: AI response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ChatResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                type: object
+                properties:
+                  answer:
+                    type: string
 
-  /api/budgets:
-    get:
+  /api/ai-chat/suggest-adjustments/{userId}:
+    post:
       tags:
-        - Budgets
-      summary: Get user budgets
-      operationId: getBudgets
+        - AI Chat
+      summary: Suggest budget adjustments
+      operationId: suggestBudgetAdjustments
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
       responses:
         '200':
-          description: List of budgets
+          description: AI suggested adjustments
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/history:
+    get:
+      tags:
+        - History
+      summary: Get user history
+      operationId: getUserHistory
+      responses:
+        '200':
+          description: List of user history entries
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Budget'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                  $ref: '#/components/schemas/UserHistory'
+
+  /api/history/summaries:
+    get:
+      tags:
+        - History
+      summary: Get history summaries
+      operationId: getHistorySummaries
+      responses:
+        '200':
+          description: List of history summaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistorySummary'
+
+  /api/history/summarize:
     post:
       tags:
-        - Budgets
-      summary: Create new budget
-      operationId: createBudget
+        - History
+      summary: Summarize history period
+      operationId: summarizeHistoryPeriod
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/BudgetCreate'
+              type: object
+              properties:
+                fromDate:
+                  type: string
+                  format: date-time
+                toDate:
+                  type: string
+                  format: date-time
       responses:
-        '201':
-          description: Budget created
+        '200':
+          description: History summary created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Budget'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: '#/components/schemas/HistorySummary'
 
-  /api/insights:
-    get:
+  /api/debug/chat/test:
+    post:
       tags:
-        - Insights
-      summary: Get financial insights
-      operationId: getInsights
-      parameters:
-        - name: period
-          in: query
-          schema:
-            type: string
-            enum: [week, month, quarter, year]
-            default: month
+        - Debug
+      summary: Test chat functionality
+      operationId: testChat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                userId:
+                  type: integer
+                agentName:
+                  type: string
+                sessionId:
+                  type: string
       responses:
         '200':
-          description: Financial insights
+          description: Chat response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Insights'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                type: object
 
-  /api/categories:
+  /api/debug/chat/agents:
     get:
       tags:
-        - Categories
-      summary: Get available transaction categories
-      operationId: getCategories
+        - Debug
+      summary: Get available chat agents
+      operationId: getChatAgents
       responses:
         '200':
-          description: List of available categories
+          description: List of available agents
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Category'
-              example:
-                - id: "1"
-                  name: "Groceries"
-                  type: "expense"
-                  icon: "shopping_cart"
-                - id: "2"
-                  name: "Salary"
-                  type: "income"
-                  icon: "payments"
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /api/reports/summary:
-    get:
-      tags:
-        - Reports
-      summary: Get financial summary report
-      operationId: getFinancialSummary
-      parameters:
-        - name: period
-          in: query
-          description: Time period for the report
-          schema:
-            type: string
-            enum: [week, month, quarter, year]
-            default: month
-      responses:
-        '200':
-          description: Financial summary report
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FinancialSummary'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                  type: string
 
 components:
   securitySchemes:
@@ -389,335 +849,282 @@ components:
             $ref: '#/components/schemas/Error'
             
   schemas:
-    RegisterRequest:
+    RegisterDTO:
       type: object
       required:
-        - email
-        - password
-        - firstName
-        - lastName
+        - Name
+        - Email
+        - Password
       properties:
-        email:
+        Name:
+          type: string
+        Email:
           type: string
           format: email
-        password:
-          type: string
-          format: password
-        firstName:
-          type: string
-        lastName:
-          type: string
-      example:
-        email: "user@example.com"
-        password: "securePassword123!"
-        firstName: "John"
-        lastName: "Doe"
-    
-    LoginRequest:
-      type: object
-      required:
-        - email
-        - password
-      properties:
-        email:
-          type: string
-          format: email
-        password:
+        Password:
           type: string
           format: password
     
-    AuthResponse:
+    LoginDTO:
+      type: object
+      required:
+        - Email
+        - Password
+      properties:
+        Email:
+          type: string
+          format: email
+        Password:
+          type: string
+          format: password
+    
+    AuthResponseDTO:
       type: object
       properties:
-        token:
+        Id:
+          type: integer
+        Name:
           type: string
-        expiresAt:
+        Email:
           type: string
-          format: date-time
-        user:
-          $ref: '#/components/schemas/User'
+        Token:
+          type: string
+    
+    ForgotPasswordDTO:
+      type: object
+      required:
+        - Email
+      properties:
+        Email:
+          type: string
+          format: email
+          
+    VerifyResetTokenDTO:
+      type: object
+      required:
+        - Token
+      properties:
+        Token:
+          type: string
+          
+    ResetPasswordDTO:
+      type: object
+      required:
+        - Token
+        - NewPassword
+        - ConfirmPassword
+      properties:
+        Token:
+          type: string
+        NewPassword:
+          type: string
+          format: password
+        ConfirmPassword:
+          type: string
+          format: password
     
     User:
       type: object
       properties:
-        id:
+        Id:
+          type: integer
+        Name:
           type: string
-          format: uuid
-        email:
+        Email:
           type: string
           format: email
-        firstName:
-          type: string
-        lastName:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-    
-    Transaction:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        amount:
-          type: number
-          format: double
-        description:
-          type: string
-        category:
-          type: string
-        date:
-          type: string
-          format: date-time
-        type:
-          type: string
-          enum: [income, expense]
-        tags:
+        PasswordHash:
           type: array
           items:
-            type: string
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-    
-    TransactionCreate:
-      type: object
-      required:
-        - amount
-        - description
-        - category
-        - type
-      properties:
-        amount:
-          type: number
-          format: double
-        description:
-          type: string
-        category:
-          type: string
-        date:
-          type: string
-          format: date-time
-        type:
-          type: string
-          enum: [income, expense]
-        tags:
+            type: integer
+        PasswordSalt:
           type: array
           items:
-            type: string
-
-    TransactionUpdate:
-      type: object
-      properties:
-        amount:
-          type: number
-          format: double
-        description:
+            type: integer
+        ResetToken:
           type: string
-        category:
-          type: string
-        date:
+          nullable: true
+        ResetTokenExpires:
           type: string
           format: date-time
-        tags:
-          type: array
-          items:
-            type: string
+          nullable: true
+        FinancialSummary:
+          $ref: '#/components/schemas/FinancialSummary'
+          nullable: true
     
-    Budget:
+    Income:
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        amount:
+        Id:
+          type: integer
+        Salary:
           type: number
           format: double
-        spent:
+        Investments:
           type: number
           format: double
-        category:
-          type: string
-        period:
-          type: string
-          enum: [daily, weekly, monthly, yearly]
-        startDate:
-          type: string
-          format: date
-        endDate:
-          type: string
-          format: date
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-    
-    BudgetCreate:
-      type: object
-      required:
-        - name
-        - amount
-        - category
-        - period
-      properties:
-        name:
-          type: string
-        amount:
+        BusinessIncome:
           type: number
           format: double
-        category:
-          type: string
-        period:
-          type: string
-          enum: [daily, weekly, monthly, yearly]
-        startDate:
-          type: string
-          format: date
-        endDate:
-          type: string
-          format: date
+        FinancialSummaryId:
+          type: integer
     
-    ChatRequest:
-      type: object
-      required:
-        - message
-      properties:
-        message:
-          type: string
-        conversationId:
-          type: string
-          format: uuid
-          description: Optional conversation ID to continue a conversation
-    
-    ChatResponse:
+    Expenses:
       type: object
       properties:
-        responseText:
-          type: string
-        conversationId:
-          type: string
-          format: uuid
-        suggestedActions:
-          type: array
-          items:
-            type: object
-            properties:
-              title:
-                type: string
-              action:
-                type: string
-    
-    Insights:
-      type: object
-      properties:
-        topExpenseCategories:
-          type: array
-          items:
-            $ref: '#/components/schemas/CategoryInsight'
-        monthlySpendingTrend:
-          type: array
-          items:
-            $ref: '#/components/schemas/TrendPoint'
-        savingsRate:
+        Id:
+          type: integer
+        RentMortgage:
           type: number
           format: double
-        budgetPerformance:
-          type: array
-          items:
-            $ref: '#/components/schemas/BudgetPerformance'
-    
-    CategoryInsight:
-      type: object
-      properties:
-        category:
-          type: string
-        amount:
+        Utilities:
           type: number
           format: double
-        percentage:
+        Insurance:
           type: number
           format: double
-    
-    TrendPoint:
-      type: object
-      properties:
-        date:
-          type: string
-          format: date
-        value:
+        LoanPayments:
           type: number
           format: double
-    
-    BudgetPerformance:
-      type: object
-      properties:
-        name:
-          type: string
-        budgeted:
+        Groceries:
           type: number
           format: double
-        actual:
+        Transportation:
           type: number
           format: double
-        variance:
+        Subscriptions:
           type: number
           format: double
+        Entertainment:
+          type: number
+          format: double
+        FinancialSummaryId:
+          type: integer
     
     FinancialSummary:
       type: object
       properties:
-        totalIncome:
+        Id:
+          type: integer
+        SavingsBalance:
           type: number
           format: double
-        totalExpenses:
+        InvestmentBalance:
           type: number
           format: double
-        netSavings:
+        DebtBalance:
           type: number
           format: double
-        savingsRate:
+        UserId:
+          type: integer
+        Income:
+          $ref: '#/components/schemas/Income'
+          nullable: true
+        Expenses:
+          $ref: '#/components/schemas/Expenses'
+          nullable: true
+        TotalIncome:
           type: number
           format: double
-        topExpenseCategories:
-          type: array
-          items:
-            $ref: '#/components/schemas/CategoryInsight'
-        topIncomeCategories:
-          type: array
-          items:
-            $ref: '#/components/schemas/CategoryInsight'
-        periodStart:
-          type: string
-          format: date
-        periodEnd:
-          type: string
-          format: date
+          readOnly: true
+        TotalExpenses:
+          type: number
+          format: double
+          readOnly: true
     
-    Category:
+    Transaction:
       type: object
       properties:
-        id:
+        Id:
+          type: integer
+        UserId:
+          type: integer
+        Amount:
+          type: number
+          format: double
+        Description:
           type: string
-        name:
+        Category:
           type: string
-        type:
+          nullable: true
+        TransactionDate:
           type: string
-          enum: [income, expense]
-        icon:
+          format: date-time
+        Reference:
           type: string
-          description: Material icon name or custom icon identifier
-      required:
-        - id
-        - name
-        - type
+          nullable: true
+        Notes:
+          type: string
+          nullable: true
+        IsReconciled:
+          type: boolean
+    
+    Bucket:
+      type: object
+      properties:
+        Id:
+          type: integer
+        UserId:
+          type: integer
+        Name:
+          type: string
+        TargetAmount:
+          type: number
+          format: double
+        CurrentSavedAmount:
+          type: number
+          format: double
+        PriorityScore:
+          type: number
+          format: double
+        Deadline:
+          type: string
+          format: date-time
+        Status:
+          type: string
+    
+    UserHistory:
+      type: object
+      properties:
+        Id:
+          type: integer
+        UserId:
+          type: integer
+        Timestamp:
+          type: string
+          format: date-time
+        EventType:
+          type: string
+        Description:
+          type: string
+        AdditionalData:
+          type: string
+          nullable: true
+        IsSummarized:
+          type: boolean
+    
+    HistorySummary:
+      type: object
+      properties:
+        Id:
+          type: integer
+        UserId:
+          type: integer
+        CreatedAt:
+          type: string
+          format: date-time
+        FromDate:
+          type: string
+          format: date-time
+        ToDate:
+          type: string
+          format: date-time
+        SummaryText:
+          type: string
+          nullable: true
+        SummarizedEntryIds:
+          type: string
+          nullable: true
     
     Error:
       type: object
