@@ -27,7 +27,8 @@ namespace BudgetBackend.Services
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
                 _configuration["JWT:SecretKey"] ?? throw new InvalidOperationException("JWT Secret Key is not configured")));
 
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+            // Changed from HmacSha512Signature to HmacSha256Signature
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {

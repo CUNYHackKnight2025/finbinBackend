@@ -1,6 +1,7 @@
 using BudgetBackend.Data;
 using BudgetBackend.Plugins;
 using BudgetBackend.Services;
+using BudgetBackend.Agents;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -67,6 +68,9 @@ namespace BudgetBackend
 
             // Register TokenService
             builder.Services.AddScoped<TokenService>();
+
+            // Register AgentFactory - specify the correct namespace
+            builder.Services.AddScoped<BudgetBackend.Agents.AgentFactory>();
 
             // JWT Authentication configuration
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -143,6 +147,13 @@ namespace BudgetBackend
             });
 
             var app = builder.Build();
+
+            // Apply migrations at startup
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                dbContext.Database.Migrate();
+            }
 
             if (app.Environment.IsDevelopment())
             {

@@ -50,5 +50,61 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Transaction>()
             .Property(t => t.Amount)
             .HasPrecision(18, 2);
+            
+        modelBuilder.Entity<Expenses>()
+            .Property(e => e.RentMortgage)
+            .HasPrecision(18, 2);
+            
+        modelBuilder.Entity<Expenses>()
+            .Property(e => e.Utilities)
+            .HasPrecision(18, 2);
+            
+        modelBuilder.Entity<Expenses>()
+            .Property(e => e.Groceries)
+            .HasPrecision(18, 2);
+            
+        modelBuilder.Entity<Expenses>()
+            .Property(e => e.Transportation)
+            .HasPrecision(18, 2);
+            
+        modelBuilder.Entity<Expenses>()
+            .Property(e => e.Insurance)
+            .HasPrecision(18, 2);
+            
+        modelBuilder.Entity<Expenses>()
+            .Property(e => e.LoanPayments)
+            .HasPrecision(18, 2);
+            
+        modelBuilder.Entity<Expenses>()
+            .Property(e => e.Subscriptions)
+            .HasPrecision(18, 2);
+            
+        modelBuilder.Entity<Expenses>()
+            .Property(e => e.Entertainment)
+            .HasPrecision(18, 2);
+            
+        modelBuilder.Entity<FinancialSummary>()
+            .Property(f => f.SavingsBalance)
+            .HasPrecision(18, 2);
+            
+        modelBuilder.Entity<FinancialSummary>()
+            .Property(f => f.InvestmentBalance)
+            .HasPrecision(18, 2);
+            
+        modelBuilder.Entity<FinancialSummary>()
+            .Property(f => f.DebtBalance)
+            .HasPrecision(18, 2);
+            
+        modelBuilder.Entity<Income>()
+            .Property(i => i.Salary)
+            .HasPrecision(18, 2);
+            
+        modelBuilder.Entity<Income>()
+            .Property(i => i.Investments)
+            .HasPrecision(18, 2);
+            
+        modelBuilder.Entity<Income>()
+            .Property(i => i.BusinessIncome)
+            .HasPrecision(18, 2);
     }
 }

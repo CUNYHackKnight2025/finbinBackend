@@ -1,10 +1,12 @@
 using BudgetBackend.Data;
 using BudgetBackend.Models;
 using BudgetBackend.Plugins;
+using BudgetBackend.Agents; // Add explicit import for the Agents namespace
 using Microsoft.EntityFrameworkCore;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace BudgetBackend.Services
 {
@@ -24,13 +26,13 @@ namespace BudgetBackend.Services
         private readonly ConcurrentDictionary<string, ChatHistory> _chatHistories = new();
         private readonly BudgetPlugin _budgetPlugin;
         private readonly Dictionary<string, IAgent> _agents = new();
-        private readonly AgentFactory _agentFactory;
+        private readonly BudgetBackend.Agents.AgentFactory _agentFactory; // Fully qualified name
 
         public FinancialChatService(ApplicationDbContext dbContext, 
                                    Kernel kernel,
                                    IChatCompletionService chatService,
                                    BudgetPlugin budgetPlugin,
-                                   AgentFactory agentFactory)
+                                   BudgetBackend.Agents.AgentFactory agentFactory) // Fully qualified name
         {
             _dbContext = dbContext;
             _kernel = kernel;
@@ -49,8 +51,8 @@ namespace BudgetBackend.Services
                 var financialAdvisor = _agentFactory.CreateFinancialAdvisor();
                 var budgetAnalyst = _agentFactory.CreateBudgetAnalyst();
                 
-                _agents[financialAdvisor.Name] = financialAdvisor;
-                _agents[budgetAnalyst.Name] = budgetAnalyst;
+                _agents[financialAdvisor.Name] = (IAgent)financialAdvisor;
+                _agents[budgetAnalyst.Name] = (IAgent)budgetAnalyst;
             }
             catch (Exception ex)
             {
