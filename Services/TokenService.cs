@@ -25,7 +25,7 @@ namespace BudgetBackend.Services
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                _configuration["JWT:SecretKey"] ?? throw new InvalidOperationException("JWT Secret Key is not configured")));
+                _configuration["JwtSettings:SecretKey"] ?? throw new InvalidOperationException("JWT Secret Key is not configured")));
 
             // Changed from HmacSha512Signature to HmacSha256Signature
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
@@ -35,8 +35,8 @@ namespace BudgetBackend.Services
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.Now.AddDays(7),
                 SigningCredentials = creds,
-                Issuer = _configuration["JWT:Issuer"],
-                Audience = _configuration["JWT:Audience"]
+                Issuer = _configuration["JwtSettings:Issuer"],
+                Audience = _configuration["JwtSettings:Audience"]
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();

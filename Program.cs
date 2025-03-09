@@ -29,7 +29,7 @@ namespace BudgetBackend
             );
 
             // OpenAI configuration
-            var openAiConfig = builder.Configuration.GetSection("AzureOpenAI");
+            var openAiConfig = builder.Configuration.GetSection("AiServiceSettings");
             string? endpoint = openAiConfig["Endpoint"];
             string? apiKey = openAiConfig["ApiKey"];
             string? deploymentName = openAiConfig["DeploymentName"];
@@ -87,12 +87,12 @@ namespace BudgetBackend
                     {
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                            builder.Configuration["JWT:SecretKey"] ?? throw new InvalidOperationException("JWT Secret Key is not configured")
+                            builder.Configuration["JwtSettings:SecretKey"] ?? throw new InvalidOperationException("JWT Secret Key is not configured")
                         )),
                         ValidateIssuer = true,
-                        ValidIssuer = builder.Configuration["JWT:Issuer"],
+                        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
                         ValidateAudience = true,
-                        ValidAudience = builder.Configuration["JWT:Audience"],
+                        ValidAudience = builder.Configuration["JwtSettings:Audience"],
                         ValidateLifetime = true,
                         ClockSkew = TimeSpan.Zero
                     };

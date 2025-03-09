@@ -17,7 +17,7 @@ namespace BudgetBackend.Services
         {
             var mailMessage = new MailMessage
             {
-                From = new MailAddress(_emailSettings.FromEmail, _emailSettings.FromName),
+                From = new MailAddress(_emailSettings.FromEmail!, _emailSettings.FromName),
                 Subject = subject,
                 Body = message,
                 IsBodyHtml = true

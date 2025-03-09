@@ -12,7 +12,7 @@ namespace BudgetBackend.Models
         public required int UserId { get; set; }
         
         [ForeignKey("UserId")]
-        public User User { get; set; }
+        public User? User { get; set; }
 
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
         

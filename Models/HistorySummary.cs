@@ -12,7 +12,7 @@ namespace BudgetBackend.Models
         public required int UserId { get; set; }
         
         [ForeignKey("UserId")]
-        public User User { get; set; }
+        public User? User { get; set; }
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
@@ -21,7 +21,7 @@ namespace BudgetBackend.Models
         public DateTime ToDate { get; set; }
         
         [Required]
-        public string SummaryText { get; set; }
+        public string? SummaryText { get; set; }
         
         // Optional: IDs of original history entries that were summarized
         public string? SummarizedEntryIds { get; set; }

@@ -4,7 +4,7 @@ namespace BudgetBackend.Services
 {
     public interface IHistoryService
     {
-        Task AddHistoryEntryAsync(int userId, string eventType, string description, string additionalData = null);
+        Task AddHistoryEntryAsync(int userId, string eventType, string description, string? additionalData = null);
         
         Task<IEnumerable<UserHistory>> GetUserHistoryAsync(int userId, int limit = 50, int offset = 0);
         

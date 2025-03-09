@@ -12,8 +12,8 @@ namespace BudgetBackend.Services
             services.AddSingleton<IChatCompletionService>(serviceProvider =>
             {
                 var aiSettings = configuration.GetSection("AiServiceSettings");
-                string apiKey = aiSettings["ApiKey"];
-                string endpoint = aiSettings["Endpoint"];
+                string? apiKey = aiSettings["ApiKey"];
+                string? endpoint = aiSettings["Endpoint"];
                 
                 var kernelBuilder = Kernel.CreateBuilder();
                 
@@ -24,7 +24,7 @@ namespace BudgetBackend.Services
                     kernelBuilder.AddAzureOpenAIChatCompletion(
                         deploymentName: "gpt-35-turbo", // Update to match your deployment
                         endpoint: endpoint,
-                        apiKey: apiKey
+                        apiKey: apiKey!
                     );
                 }
                 else
@@ -32,7 +32,7 @@ namespace BudgetBackend.Services
                     // Direct OpenAI
                     kernelBuilder.AddOpenAIChatCompletion(
                         modelId: "gpt-3.5-turbo", 
-                        apiKey: apiKey
+                        apiKey: apiKey!
                     );
                 }
                 
