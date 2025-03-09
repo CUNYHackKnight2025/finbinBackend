@@ -20,6 +20,10 @@ namespace BudgetBackend.Models
         public byte[] PasswordHash { get; set; } = [];
         public byte[] PasswordSalt { get; set; } = [];
 
+        // Properties for password reset functionality
+        public string ResetToken { get; set; }
+        public DateTime? ResetTokenExpires { get; set; }
+
         public FinancialSummary? FinancialSummary { get; set; }  
         public ICollection<Bucket> Buckets { get; set; } = [];
         public ICollection<Transaction> Transactions { get; set; } = [];
