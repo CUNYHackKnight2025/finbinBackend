@@ -1,46 +1,80 @@
 using BudgetBackend.Data;
+using BudgetBackend.Plugins;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔹 Configure Database (Azure SQL or Local SQL Server)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlServerOptions => sqlServerOptions.EnableRetryOnFailure()
+    )
+);
 
-// 🔹 Enable CORS (Allows frontend to access API)
-builder.Services.AddCors(options =>
+var openAiConfig = builder.Configuration.GetSection("AzureOpenAI");
+string? endpoint = openAiConfig["Endpoint"];
+string? apiKey = openAiConfig["ApiKey"];
+string? deploymentName = openAiConfig["DeploymentName"];
+string? modelId = openAiConfig["ModelId"];
+
+if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(deploymentName) || string.IsNullOrEmpty(apiKey))
 {
-    options.AddPolicy("AllowFrontend",
-        policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+    throw new InvalidOperationException("Azure OpenAI configuration is missing or incorrect.");
+}
+
+builder.Services.AddSingleton<IChatCompletionService>(serviceProvider =>
+{
+    return new AzureOpenAIChatCompletionService(
+        deploymentName: deploymentName!,
+        apiKey: apiKey!,
+        endpoint: endpoint!,
+        modelId: modelId!
+    );
 });
 
-// 🔹 Add Controllers for API
-builder.Services.AddControllers();
+builder.Services.AddSingleton<Kernel>(serviceProvider =>
+{
+    var kernelBuilder = Kernel.CreateBuilder();
 
-// 🔹 Enable Swagger
+    kernelBuilder.AddAzureOpenAIChatCompletion(
+        deploymentName: deploymentName!,
+        apiKey: apiKey!,
+        endpoint: endpoint!,
+        modelId: modelId!,
+        serviceId: "openai-service"
+    );
+
+    kernelBuilder.Plugins.AddFromType<BudgetPlugin>();
+
+    return kernelBuilder.Build();
+});
+
+builder.Services.AddScoped<BudgetPlugin>();
+
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "FinBin API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "BudgetBackend API", Version = "v1" });
 });
 
 var app = builder.Build();
 
-// 🔹 Enable Swagger (Only in Development Mode)
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "FinBin API v1"));
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BudgetBackend API v1"));
 }
 
-// 🔹 Enable CORS
 app.UseCors("AllowFrontend");
-
-// 🔹 Enable HTTPS Redirection
 app.UseHttpsRedirection();
-
-// 🔹 Map Controllers (Ensure API Endpoints Work)
 app.MapControllers();
-
 app.Run();

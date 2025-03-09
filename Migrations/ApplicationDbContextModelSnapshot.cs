@@ -22,7 +22,7 @@ namespace BudgetBackend.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("BudgetBackend.Models.BudgetRecord", b =>
+            modelBuilder.Entity("BudgetBackend.Models.Bucket", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -30,19 +30,213 @@ namespace BudgetBackend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Category")
+                    b.Property<decimal>("CurrentSavedAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("Deadline")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("PriorityScore")
+                        .HasColumnType("decimal(3,2)");
+
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("Cost")
+                    b.Property<decimal>("TargetAmount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.ToTable("BudgetRecords");
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Buckets");
+                });
+
+            modelBuilder.Entity("BudgetBackend.Models.Expenses", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Entertainment")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("FinancialSummaryId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Groceries")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Insurance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("LoanPayments")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("RentMortgage")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Subscriptions")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Transportation")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Utilities")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FinancialSummaryId")
+                        .IsUnique();
+
+                    b.ToTable("Expenses");
+                });
+
+            modelBuilder.Entity("BudgetBackend.Models.FinancialSummary", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("DebtBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("InvestmentBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("SavingsBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("FinancialSummaries");
+                });
+
+            modelBuilder.Entity("BudgetBackend.Models.Income", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("BusinessIncome")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("FinancialSummaryId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Investments")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Salary")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FinancialSummaryId")
+                        .IsUnique();
+
+                    b.ToTable("Incomes");
+                });
+
+            modelBuilder.Entity("BudgetBackend.Models.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("BudgetBackend.Models.Bucket", b =>
+                {
+                    b.HasOne("BudgetBackend.Models.User", "User")
+                        .WithMany("Buckets")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BudgetBackend.Models.Expenses", b =>
+                {
+                    b.HasOne("BudgetBackend.Models.FinancialSummary", "FinancialSummary")
+                        .WithOne("Expenses")
+                        .HasForeignKey("BudgetBackend.Models.Expenses", "FinancialSummaryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FinancialSummary");
+                });
+
+            modelBuilder.Entity("BudgetBackend.Models.FinancialSummary", b =>
+                {
+                    b.HasOne("BudgetBackend.Models.User", "User")
+                        .WithOne("FinancialSummary")
+                        .HasForeignKey("BudgetBackend.Models.FinancialSummary", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BudgetBackend.Models.Income", b =>
+                {
+                    b.HasOne("BudgetBackend.Models.FinancialSummary", "FinancialSummary")
+                        .WithOne("Income")
+                        .HasForeignKey("BudgetBackend.Models.Income", "FinancialSummaryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FinancialSummary");
+                });
+
+            modelBuilder.Entity("BudgetBackend.Models.FinancialSummary", b =>
+                {
+                    b.Navigation("Expenses");
+
+                    b.Navigation("Income");
+                });
+
+            modelBuilder.Entity("BudgetBackend.Models.User", b =>
+                {
+                    b.Navigation("Buckets");
+
+                    b.Navigation("FinancialSummary");
                 });
 #pragma warning restore 612, 618
         }
