@@ -15,6 +15,10 @@ namespace BudgetBackend.Models
         [EmailAddress]
         [MaxLength(255)]
         public required string Email { get; set; }
+        
+        // New password related fields
+        public byte[] PasswordHash { get; set; } = [];
+        public byte[] PasswordSalt { get; set; } = [];
 
         public FinancialSummary? FinancialSummary { get; set; }  
         public ICollection<Bucket> Buckets { get; set; } = [];
